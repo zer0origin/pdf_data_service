@@ -1,6 +1,5 @@
 package com.w.callum.pdf_service_data.controller;
 
-import com.w.callum.pdf_service_data.model.request.PostImageRequest;
 import com.w.callum.pdf_service_data.model.request.PostMetaRequest;
 import com.w.callum.pdf_service_data.model.response.PostMetaResponse;
 import org.apache.pdfbox.Loader;
@@ -20,9 +19,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 @RestController
 public class BasicRoutes {
@@ -43,16 +40,15 @@ public class BasicRoutes {
                 width = rec.getWidth();
 
                 PDFRenderer pdfRenderer = new PDFRenderer(document);
-                List<String> encodedArr = new ArrayList<>(noOfPages);
+                List<byte[]> encodedArr = new ArrayList<>(noOfPages);
                 meta = new PostMetaResponse(height, width, noOfPages, encodedArr);
                 for (int i = 0; i < noOfPages; i++) {
                     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                        BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, 300); // 300 DPI
+                        BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, 72);
                         ImageIO.write(bufferedImage, "png", outputStream);
 
                         byte[] imageBytes = outputStream.toByteArray();
-                        String image = Base64.getUrlEncoder().encodeToString(imageBytes);
-                        encodedArr.add(image);
+                        encodedArr.add(imageBytes);
                     }
                 }
             } catch (IOException e) {
@@ -61,7 +57,7 @@ public class BasicRoutes {
             }
 
             monoSink.success(ResponseEntity.ok().body(meta));
-        }).timeout(Duration.ofSeconds(15));
+        }).timeout(Duration.ofSeconds(20));
     }
 
     @PostMapping("/extract")

@@ -13,13 +13,13 @@ public class PostMetaResponse {
     @JsonProperty("noOfPages")
     private int noOfPages;
     @JsonProperty("images")
-    private List<String> images;
+    private List<byte[]> images;
 
     @JsonCreator
     public PostMetaResponse() {
     }
 
-    public PostMetaResponse(float height, float width, int noOfPages, List<String> images) {
+    public PostMetaResponse(float height, float width, int noOfPages, List<byte[]> images) {
         this.height = height;
         this.width = width;
         this.noOfPages = noOfPages;
@@ -50,11 +50,11 @@ public class PostMetaResponse {
         this.noOfPages = noOfPages;
     }
 
-    public List<String> getImages() {
+    public List<byte[]> getImages() {
         return images;
     }
 
-    public void setImages(List<String> images) {
+    public void setImages(List<byte[]> images) {
         this.images = images;
     }
 
