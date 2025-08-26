@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,7 +41,7 @@ public class BasicRoutes {
                 width = rec.getWidth();
 
                 PDFRenderer pdfRenderer = new PDFRenderer(document);
-                List<byte[]> encodedArr = new ArrayList<>(noOfPages);
+                Map<Integer, byte[]> encodedArr = new HashMap<>(noOfPages);
                 meta = new PostMetaResponse(height, width, noOfPages, encodedArr);
                 for (int i = 0; i < noOfPages; i++) {
                     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -48,7 +49,7 @@ public class BasicRoutes {
                         ImageIO.write(bufferedImage, "png", outputStream);
 
                         byte[] imageBytes = outputStream.toByteArray();
-                        encodedArr.add(imageBytes);
+                        encodedArr.put(i, imageBytes);
                     }
                 }
             } catch (IOException e) {
@@ -58,6 +59,12 @@ public class BasicRoutes {
 
             monoSink.success(ResponseEntity.ok().body(meta));
         }).timeout(Duration.ofSeconds(20));
+    }
+
+    @GetMapping(path = "/ping", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<Object> getPing() {
+        record Result(String message){}
+        return Mono.just(new Result("Pong!"));
     }
 
     @PostMapping("/extract")

@@ -4,22 +4,23 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 
 public class PostMetaResponse {
     @JsonProperty("height")
     private float height;
     @JsonProperty("width")
     private float width;
-    @JsonProperty("noOfPages")
+    @JsonProperty("numberOfPages")
     private int noOfPages;
     @JsonProperty("images")
-    private List<byte[]> images;
+    private Map<Integer, byte[]> images;
 
     @JsonCreator
     public PostMetaResponse() {
     }
 
-    public PostMetaResponse(float height, float width, int noOfPages, List<byte[]> images) {
+    public PostMetaResponse(float height, float width, int noOfPages, Map<Integer, byte[]> images) {
         this.height = height;
         this.width = width;
         this.noOfPages = noOfPages;
@@ -50,11 +51,11 @@ public class PostMetaResponse {
         this.noOfPages = noOfPages;
     }
 
-    public List<byte[]> getImages() {
+    public Map<Integer, byte[]> getImages() {
         return images;
     }
 
-    public void setImages(List<byte[]> images) {
+    public void setImages(Map<Integer, byte[]> images) {
         this.images = images;
     }
 
