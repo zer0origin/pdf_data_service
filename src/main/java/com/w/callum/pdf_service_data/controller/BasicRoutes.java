@@ -19,6 +19,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.*;
 
@@ -41,15 +43,31 @@ public class BasicRoutes {
                 width = rec.getWidth();
 
                 PDFRenderer pdfRenderer = new PDFRenderer(document);
-                Map<Integer, byte[]> encodedArr = new HashMap<>(noOfPages);
-                meta = new PostMetaResponse(height, width, noOfPages, encodedArr);
+                Map<Integer, byte[]> encodedArr = new HashMap<>(noOfPages); //TODO: Pagination.
+                HashSet<String> keys = new HashSet<>(noOfPages);
+                meta = new PostMetaResponse(height, width, encodedArr);
                 for (int i = 0; i < noOfPages; i++) {
                     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                         BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, 72);
                         ImageIO.write(bufferedImage, "png", outputStream);
 
                         byte[] imageBytes = outputStream.toByteArray();
-                        encodedArr.put(i, imageBytes);
+                        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                        byte[] hash = digest.digest(imageBytes);
+                        String key = Arrays.toString(hash);
+                        System.out.println(key);
+
+                        if (keys.contains(key)) {
+                            continue;
+                        } else {
+                            keys.add(key);
+                            encodedArr.put(i, imageBytes);
+                        }
+
+                        meta.setNoOfPages(keys.size());
+                    } catch (NoSuchAlgorithmException e) {
+                        monoSink.error(e);
+                        return;
                     }
                 }
             } catch (IOException e) {
