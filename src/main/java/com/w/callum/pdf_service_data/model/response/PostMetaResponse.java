@@ -2,8 +2,6 @@ package com.w.callum.pdf_service_data.model.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
 import java.util.Map;
 
 public class PostMetaResponse {
@@ -20,10 +18,9 @@ public class PostMetaResponse {
     public PostMetaResponse() {
     }
 
-    public PostMetaResponse(float height, float width, int noOfPages, Map<Integer, byte[]> images) {
+    public PostMetaResponse(float height, float width, Map<Integer, byte[]> images) {
         this.height = height;
         this.width = width;
-        this.noOfPages = noOfPages;
         this.images = images;
     }
 
