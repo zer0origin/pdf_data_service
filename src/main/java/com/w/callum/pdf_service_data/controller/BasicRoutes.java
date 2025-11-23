@@ -2,6 +2,7 @@ package com.w.callum.pdf_service_data.controller;
 
 import com.w.callum.pdf_service_data.model.request.PostMetaRequest;
 import com.w.callum.pdf_service_data.model.response.PostMetaResponse;
+import com.w.callum.pdf_service_data.util.Env;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -27,6 +28,10 @@ import java.util.*;
 @RestController
 public class BasicRoutes {
 
+    static {
+        System.out.printf("Using DPI of %.2f\n", Env.getEnvOrDefault("DOCUMENT_DPI",Float::parseFloat, 72.0f));
+    }
+
     @PostMapping(path = "/meta", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<Object> getMetaData(@RequestBody PostMetaRequest dataRequest) {
         return Mono.create(monoSink -> {
@@ -43,21 +48,20 @@ public class BasicRoutes {
                 width = rec.getWidth();
 
                 PDFRenderer pdfRenderer = new PDFRenderer(document);
-                Map<Integer, byte[]> encodedArr = new HashMap<>(noOfPages); //TODO: Pagination.
+                Map<Integer, byte[]> encodedArr = new HashMap<>(noOfPages);
                 HashSet<String> keys = new HashSet<>(noOfPages);
                 meta = new PostMetaResponse(height, width, encodedArr);
                 for (int i = 0; i < noOfPages; i++) {
                     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                        BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, 72);
+                        BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, Env.getEnvOrDefault("DOCUMENT_DPI",Float::parseFloat, 72.0f));
                         ImageIO.write(bufferedImage, "png", outputStream);
 
                         byte[] imageBytes = outputStream.toByteArray();
                         MessageDigest digest = MessageDigest.getInstance("SHA-256");
                         byte[] hash = digest.digest(imageBytes);
                         String key = Arrays.toString(hash);
-                        System.out.println(key);
 
-                        if (keys.contains(key)) {
+                        if (keys.contains(key)) { //Duplication checking
                             continue;
                         } else {
                             keys.add(key);

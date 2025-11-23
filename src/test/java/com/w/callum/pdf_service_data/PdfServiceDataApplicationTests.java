@@ -1,8 +1,11 @@
 package com.w.callum.pdf_service_data;
 
+import com.sun.jna.Memory;
+import com.sun.jna.Native;
 import com.w.callum.pdf_service_data.controller.BasicRoutes;
 import com.w.callum.pdf_service_data.model.request.PostMetaRequest;
 import com.w.callum.pdf_service_data.model.response.PostMetaResponse;
+import com.w.callum.pdf_service_data.util.ImageHashing;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +13,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
@@ -33,5 +41,17 @@ class PdfServiceDataApplicationTests {
         Assertions.assertEquals(1, metaResponse.getNoOfPages());
         Assertions.assertEquals(1, metaResponse.getImages().size());
         System.out.println(metaResponse.getNoOfPages());
+    }
+
+    @Test
+    void HashingCheck() throws IOException {
+        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        InputStream is = classloader.getResourceAsStream("EncodedImageExample1.txt");
+        Assertions.assertNotNull(is);
+        String encodedData = new String(is.readAllBytes());
+
+        ImageHashing imageHashing = Native.load("hashing", ImageHashing.class);
+        String key = imageHashing.hashPageOfDocumentString(encodedData);
+        Assertions.assertEquals("LmPjeyvClM4", key);
     }
 }
