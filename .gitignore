@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/main/resources/EncodedImageExample1.txt
+/libhashing.dll
+/libhashing.dylib
+/libhashing.h
+/libhashing.so
