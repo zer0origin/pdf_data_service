@@ -3,6 +3,7 @@ package com.w.callum.pdf_service_data.controller;
 import com.w.callum.pdf_service_data.model.request.PostMetaRequest;
 import com.w.callum.pdf_service_data.model.response.PostMetaResponse;
 import com.w.callum.pdf_service_data.util.Env;
+import com.w.callum.pdf_service_data.util.ImageHashing;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -48,7 +49,7 @@ public class BasicRoutes {
                 width = rec.getWidth();
 
                 PDFRenderer pdfRenderer = new PDFRenderer(document);
-                Map<Integer, byte[]> encodedArr = new HashMap<>(noOfPages);
+                Map<String, byte[]> encodedArr = new HashMap<>(noOfPages);
                 HashSet<String> keys = new HashSet<>(noOfPages);
                 meta = new PostMetaResponse(height, width, encodedArr);
                 for (int i = 0; i < noOfPages; i++) {
@@ -56,22 +57,20 @@ public class BasicRoutes {
                         BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, Env.getEnvOrDefault("DOCUMENT_DPI",Float::parseFloat, 72.0f));
                         ImageIO.write(bufferedImage, "png", outputStream);
 
+                        ImageHashing imageHashing = new ImageHashing();
                         byte[] imageBytes = outputStream.toByteArray();
-                        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                        byte[] hash = digest.digest(imageBytes);
-                        String key = Arrays.toString(hash);
+                        String imageString = Arrays.toString(imageBytes);
+
+                        String key = imageHashing.hashPageOfDocumentString(imageString);
 
                         if (keys.contains(key)) { //Duplication checking
                             continue;
                         } else {
                             keys.add(key);
-                            encodedArr.put(i, imageBytes);
+                            encodedArr.put(key, imageBytes);
                         }
 
                         meta.setNoOfPages(keys.size());
-                    } catch (NoSuchAlgorithmException e) {
-                        monoSink.error(e);
-                        return;
                     }
                 }
             } catch (IOException e) {
