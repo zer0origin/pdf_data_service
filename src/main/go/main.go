@@ -23,5 +23,3 @@ func convertFNVString(cStr *C.char, hash hashing.Hash) uint64 {
 }
 
 // https://github.com/vladimirvivien/go-cshared-examples
-//Java Native will fill in the rest of the file name, so i added hashing, and it knows where to look in the root dir. if i had multiple dlls and i tried to load them
-// as long as they are all named differently, it should be fine.

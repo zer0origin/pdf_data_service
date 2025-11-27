@@ -59,7 +59,7 @@ public class BasicRoutes {
 
                         ImageHashing imageHashing = new ImageHashing();
                         byte[] imageBytes = outputStream.toByteArray();
-                        String imageString = Arrays.toString(imageBytes);
+                        String imageString = Base64.getEncoder().encodeToString(imageBytes);
 
                         String key = imageHashing.hashPageOfDocumentString(imageString);
 

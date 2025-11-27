@@ -13,8 +13,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
@@ -50,5 +52,32 @@ class PdfServiceDataApplicationTests {
         ImageHashing imageHashing = new ImageHashing();
         String key = imageHashing.hashPageOfDocumentString(encodedData);
         Assertions.assertEquals("LmPjeyvClM4", key);
+    }
+
+    @Test
+    void GenerateMetaTest() {
+        Path currentRelativePath = Paths.get("");
+        String s = currentRelativePath.toAbsolutePath().toString();
+        System.out.println("Current absolute path is: " + s);
+
+        try (FileInputStream fileInputStream = new FileInputStream("src/test/java/com/w/callum/pdf_service_data/document1.txt")){
+            BasicRoutes routes = new BasicRoutes();
+            PostMetaRequest req = new PostMetaRequest();
+            req.setBase64(new String(fileInputStream.readAllBytes()));
+
+            Mono<Object> metaData = routes.getMetaData(req);
+            Object o = metaData.block();
+            Assertions.assertInstanceOf(ResponseEntity.class, o);
+            ResponseEntity<?> res = (ResponseEntity<?>) o;
+            Assertions.assertTrue(res.getStatusCode().is2xxSuccessful());
+            PostMetaResponse metaResponse = (PostMetaResponse) res.getBody();
+            Assertions.assertNotNull(metaResponse);
+
+            System.out.println(metaResponse.getImages().keySet());
+            Assertions.assertEquals("[mCTYLxmeh95, vqEYwOzVYM]", metaResponse.getImages().keySet().toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            Assertions.fail();
+        }
     }
 }
