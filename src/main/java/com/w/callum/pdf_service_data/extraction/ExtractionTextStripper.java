@@ -74,5 +74,5 @@ public class ExtractionTextStripper extends PDFTextStripper {
         return strippedData;
     }
 
-    public record TextData(String text, Coordinate textCoordinate, Coordinate SelectionCoordinate){}
+    public record TextData(String text, Coordinate textCoordinate, Coordinate selectionCoordinate){}
 }
