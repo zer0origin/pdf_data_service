@@ -89,6 +89,7 @@ public class ImageHashingTest {
 
     @Test
     void TestHashingFile4() {
+
         File file = new File("src/test/java/com/w/callum/pdf_service_data/RealPage.txt");
         String result = "";
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
@@ -179,3 +180,9 @@ public class ImageHashingTest {
         }
     }
 }
+
+/**
+ * WHY IS IMAGE HASH GETTING THE SAME PAGE OUTPUT FOR EVERYTHING? DISPITE A DIFFERENT INDEX. WRITE TEST TO CONFIRM BEHAVIOUR
+ *
+ * also, zoom button does not update selection ui anymore
+ */

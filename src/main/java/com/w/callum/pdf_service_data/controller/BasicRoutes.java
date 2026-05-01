@@ -27,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLOutput;
 import java.time.Duration;
 import java.util.*;
 
@@ -44,11 +45,7 @@ public class BasicRoutes {
             int noOfPages;
             PostMetaResponse meta;
             String encodedData = data.getBase64();
-            System.out.println("encodedData");
-            System.out.println(encodedData);
             byte[] decodedDocument = Base64.getDecoder().decode(encodedData);
-            System.out.println("decodedDocument");
-            System.out.println(Arrays.toString(decodedDocument));
             try (PDDocument document = Loader.loadPDF(decodedDocument)) {
                 noOfPages = document.getNumberOfPages();
                 PDPage documentPage = document.getPage(0);
@@ -68,16 +65,19 @@ public class BasicRoutes {
                         ImageIO.write(bufferedImage, "png", outputStream);
                         byte[] imageBytes = outputStream.toByteArray();
                         String pageEncoded = Base64.getEncoder().encodeToString(imageBytes);
-                        System.out.println(Arrays.toString(imageBytes));
-                        System.out.println(pageEncoded);
 
                         ImageHashing imageHashing = new ImageHashing();
                         long numberFNV1A = imageHashing.ConvertByteArrToNumberFNV1A(imageBytes);
-                        System.out.println("numberFNV1A: " + numberFNV1A);
                         long hashedNumber = imageHashing.Hash64shift(numberFNV1A);
-                        System.out.println("hashedNumber: " + hashedNumber);
                         String key = imageHashing.ConvertHashToString(hashedNumber);
-                        System.out.println("key: " + key);
+
+                        if (key.equals("1AmubdO287V")){
+                            System.out.println("KEY DIAGNOSIS: ");
+                            System.out.println(numberFNV1A);
+                            System.out.println(hashedNumber);
+                            System.out.println(key);
+                            System.out.println("KEY DIAGNOSIS END");
+                        }
 
                         if (keys.contains(key)) {
                             continue;
@@ -110,7 +110,7 @@ public class BasicRoutes {
         Map<String, Map<Double, List<ExtractionTextStripper.TextData>>> result = new HashMap<>();
 
         for (Selection selection : data.selections().values()) {
-            Coordinate coordinate = selection.coordinate();
+            Coordinate coordinate = selection.coordinates();
             byte[] bytes = Base64.getDecoder().decode(data.base64EncodedDocument().getBytes(StandardCharsets.UTF_8));
             try (PDDocument document = Loader.loadPDF(bytes)) {
                 HashKeyPage hashKeyPage = new HashKeyPage(selection.pageKey(), document);
