@@ -117,8 +117,8 @@ public class BasicRoutes {
                 hashKeyPage.getPageUsingKey();
                 hashKeyPage.getPageIfFound().ifPresent(pdPage -> {
                     ExtractionTextStripper extractionTextStripper = new ExtractionTextStripper(coordinate);
-                    extractionTextStripper.setPageStart(Integer.toString(hashKeyPage.getPageIndex()));
-                    extractionTextStripper.setPageEnd(Integer.toString(hashKeyPage.getPageIndex()));
+                    extractionTextStripper.setStartPage(hashKeyPage.getPageIndex());
+                    extractionTextStripper.setEndPage(hashKeyPage.getPageIndex() + 1);
 
                     try {
                         extractionTextStripper.getText(document);
