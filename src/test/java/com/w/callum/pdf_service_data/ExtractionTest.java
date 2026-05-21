@@ -50,6 +50,7 @@ public class ExtractionTest {
         String selectionUUID1 = "d643b48d-1601-473e-b74f-3778d4b2448f";
         String selectionUUID2 = "1191d3b6-135a-43f8-a258-bcb22c3405c3";
         BasicRoutes basicRoutes = new BasicRoutes();
+
         File encodedDocument = new File("src/test/java/com/w/callum/pdf_service_data/invoice_Phillip Breyer_11502.txt");
         try (FileInputStream fileInputStream = new FileInputStream(encodedDocument)) {
             byte[] data = fileInputStream.readAllBytes();
@@ -58,12 +59,11 @@ public class ExtractionTest {
             Coordinate coordinate1 = new Coordinate(0, 612, 0, 792);
             Coordinate coordinate2 = new Coordinate(0, 612, 0, 792);
 
-            Selection selection1 = new Selection(selectionUUID1, selectionUUID1, coordinate1, 0, "HGlrO8tOC2P");
-            Selection selection2 = new Selection(selectionUUID2, selectionUUID2, coordinate2, 0, "HGlrO8tOC2P");
+            Selection selection1 = new Selection(selectionUUID1, selectionUUID1, coordinate1, "HGlrO8tOC2P");
+            Selection selection2 = new Selection(selectionUUID2, selectionUUID2, coordinate2, "HGlrO8tOC2P");
 
             basicRoutes.getExtractData(new ExtractionRequest("", encodedData, Map.of(selection1.selectionUUID(), selection1, selection2.selectionUUID(), selection2))).subscribe(o -> {
                 System.out.println("Response received");
-
 
                 //TODO - Change to not use a map in a map, i really do not like this.
                 ResponseEntity<Map<String, Map<Double, List<ExtractionTextStripper.TextData>>>> receivedData = (ResponseEntity<Map<String, Map<Double, List<ExtractionTextStripper.TextData>>>>) o;
