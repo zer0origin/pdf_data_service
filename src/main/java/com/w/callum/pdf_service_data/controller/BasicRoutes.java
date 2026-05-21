@@ -106,7 +106,7 @@ public class BasicRoutes {
     }
 
     @PostMapping("/extract")
-    public Mono<?> getExtractData(@RequestBody ExtractionRequest data) {
+    public Mono<?> getExtractData(@RequestBody ExtractionRequest data) { //TODO: Allow the caller to provide the hashkey to page table, this will speed up the extraction significantly.
         Map<String, Map<Double, List<ExtractionTextStripper.TextData>>> result = new HashMap<>();
 
         for (Selection selection : data.selections().values()) {
