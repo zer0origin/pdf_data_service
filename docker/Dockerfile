@@ -1,5 +1,5 @@
 # Step 1: Use an official OpenJDK base image from Docker Hub
-FROM openjdk:24-jdk
+FROM  amazoncorretto:25-jdk
 
 # Step 2: Set the working directory inside the container
 WORKDIR /app
