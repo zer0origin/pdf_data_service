@@ -1,6 +1,7 @@
 package com.w.callum.pdf_service_data.extraction;
 
 import com.w.callum.pdf_service_data.model.Coordinate;
+import com.w.callum.pdf_service_data.util.Whitespace;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
@@ -8,6 +9,7 @@ import org.apache.pdfbox.text.TextPosition;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class ExtractionTextStripper extends PDFTextStripper {
     private final Coordinate[] selectionCoordinates;
@@ -29,6 +31,10 @@ public class ExtractionTextStripper extends PDFTextStripper {
 
     @Override
     protected void writeString(String text, List<TextPosition> textPositions) throws IOException {
+        if (text.replaceAll("[" + Whitespace.chars + "]" + "+", "").isBlank()){
+            return;
+        }
+
         List<Coordinate> textCoordinates = textPositions.stream().map(textPosition -> new Coordinate(textPosition.getX(),
                 textPosition.getX() + textPosition.getWidth(),
                 textPosition.getY(),
