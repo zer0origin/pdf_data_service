@@ -1,6 +1,7 @@
 package com.w.callum.pdf_service_data.controller;
 
 import com.w.callum.pdf_service_data.extraction.ExtractionTextStripper;
+import com.w.callum.pdf_service_data.extraction.HashKeyPage;
 import com.w.callum.pdf_service_data.model.Coordinate;
 import com.w.callum.pdf_service_data.model.ExtractionRequest;
 import com.w.callum.pdf_service_data.model.Selection;
@@ -33,7 +34,7 @@ import java.util.*;
 public class BasicRoutes {
 
     static {
-        System.out.printf("Using DPI of %.2f\n", Env.getEnvOrDefault("DOCUMENT_DPI",Float::parseFloat, 72.0f));
+        System.out.printf("Using DPI of %.2f\n", Env.getEnvOrDefault("DOCUMENT_DPI", Float::parseFloat, 72.0f));
     }
 
     @PostMapping(path = "/meta", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -43,11 +44,7 @@ public class BasicRoutes {
             int noOfPages;
             PostMetaResponse meta;
             String encodedData = data.getBase64();
-            System.out.println("encodedData");
-            System.out.println(encodedData);
             byte[] decodedDocument = Base64.getDecoder().decode(encodedData);
-            System.out.println("decodedDocument");
-            System.out.println(Arrays.toString(decodedDocument));
             try (PDDocument document = Loader.loadPDF(decodedDocument)) {
                 noOfPages = document.getNumberOfPages();
                 PDPage documentPage = document.getPage(0);
@@ -63,20 +60,23 @@ public class BasicRoutes {
 
                 for (int i = 0; i < noOfPages; i++) {
                     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-                        BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, Env.getEnvOrDefault("DOCUMENT_DPI",Float::parseFloat, 72.0f));
+                        BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(i, Env.getEnvOrDefault("DOCUMENT_DPI", Float::parseFloat, 72.0f));
                         ImageIO.write(bufferedImage, "png", outputStream);
                         byte[] imageBytes = outputStream.toByteArray();
                         String pageEncoded = Base64.getEncoder().encodeToString(imageBytes);
-                        System.out.println(Arrays.toString(imageBytes));
-                        System.out.println(pageEncoded);
 
                         ImageHashing imageHashing = new ImageHashing();
                         long numberFNV1A = imageHashing.ConvertByteArrToNumberFNV1A(imageBytes);
-                        System.out.println("numberFNV1A: " + numberFNV1A);
                         long hashedNumber = imageHashing.Hash64shift(numberFNV1A);
-                        System.out.println("hashedNumber: " + hashedNumber);
                         String key = imageHashing.ConvertHashToString(hashedNumber);
-                        System.out.println("key: " + key);
+
+                        if (key.equals("1AmubdO287V")){
+                            System.out.println("KEY DIAGNOSIS: ");
+                            System.out.println(numberFNV1A);
+                            System.out.println(hashedNumber);
+                            System.out.println(key);
+                            System.out.println("KEY DIAGNOSIS END");
+                        }
 
                         if (keys.contains(key)) {
                             continue;
@@ -99,25 +99,47 @@ public class BasicRoutes {
 
     @GetMapping(path = "/ping", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<Object> getPing() {
-        record Result(String message){}
+        record Result(String message) {
+        }
         return Mono.just(new Result("Pong!"));
     }
 
     @PostMapping("/extract")
-    public Mono<?> getExtractData(@RequestBody ExtractionRequest data) {
-        for(Selection selection : data.selections()){
-            Coordinate coordinate = selection.coordinate();
+    public
+    Mono<ResponseEntity<Map<String, Map<Double, List<ExtractionTextStripper.TextData>>>>> getExtractDataUsingBasicExtractionMethod(@RequestBody ExtractionRequest data) { //TODO: Allow the caller to provide the hashkey to page table, this will speed up the extraction significantly.
+        Map<String, Map<Double, List<ExtractionTextStripper.TextData>>> result = new HashMap<>();
 
+        for (Selection selection : data.selections().values()) {
+            Coordinate coordinate = selection.coordinates();
             byte[] bytes = Base64.getDecoder().decode(data.base64EncodedDocument().getBytes(StandardCharsets.UTF_8));
-            try(PDDocument document = Loader.loadPDF(bytes)){
-                ExtractionTextStripper extractionTextStripper = new ExtractionTextStripper(selection, document);
+            try (PDDocument document = Loader.loadPDF(bytes)) {
+                HashKeyPage hashKeyPage = new HashKeyPage(selection.pageKey(), document);
+                hashKeyPage.getPageUsingKey();
+                hashKeyPage.getPageIfFound().ifPresent(pdPage -> {
+                    ExtractionTextStripper extractionTextStripper = new ExtractionTextStripper(coordinate);
+                    extractionTextStripper.setStartPage(hashKeyPage.getPageIndex() + 1);
+                    extractionTextStripper.setEndPage(hashKeyPage.getPageIndex() + 1);
+
+                    try {
+                        extractionTextStripper.getText(document);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    Map<Double, List<ExtractionTextStripper.TextData>> strippedData = extractionTextStripper.getStrippedData();
+                    result.put(selection.selectionUUID(), strippedData);
+                });
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
         }
 
+        return Mono.just(ResponseEntity.ok(result));
+    }
 
-        return Mono.just(ResponseEntity.badRequest().build());
+    @PostMapping("/extract/indexed")
+    public Mono<?> getExtractDataUsingIndexedExtractionMethod(@RequestBody ExtractionRequest data) {
+        //Figure out the indexed column. How am i going to accomplish this, visually?
+        return Mono.just(ResponseEntity.ok());
     }
 }
