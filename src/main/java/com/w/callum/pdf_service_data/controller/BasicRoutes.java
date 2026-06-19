@@ -27,7 +27,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLOutput;
 import java.time.Duration;
 import java.util.*;
 
@@ -106,7 +105,8 @@ public class BasicRoutes {
     }
 
     @PostMapping("/extract")
-    public Mono<?> getExtractData(@RequestBody ExtractionRequest data) { //TODO: Allow the caller to provide the hashkey to page table, this will speed up the extraction significantly.
+    public
+    Mono<ResponseEntity<Map<String, Map<Double, List<ExtractionTextStripper.TextData>>>>> getExtractDataUsingBasicExtractionMethod(@RequestBody ExtractionRequest data) { //TODO: Allow the caller to provide the hashkey to page table, this will speed up the extraction significantly.
         Map<String, Map<Double, List<ExtractionTextStripper.TextData>>> result = new HashMap<>();
 
         for (Selection selection : data.selections().values()) {
@@ -135,5 +135,11 @@ public class BasicRoutes {
         }
 
         return Mono.just(ResponseEntity.ok(result));
+    }
+
+    @PostMapping("/extract/indexed")
+    public Mono<?> getExtractDataUsingIndexedExtractionMethod(@RequestBody ExtractionRequest data) {
+        //Figure out the indexed column. How am i going to accomplish this, visually?
+        return Mono.just(ResponseEntity.ok());
     }
 }
